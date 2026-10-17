@@ -120,6 +120,6 @@ Full timeline: [Notion work tracker](https://maddening-year-2cf.notion.site/Meal
 
 - Email: aaryanp35@gmail.com
 - LinkedIn: https://www.linkedin.com/in/aaryan-p-5a4223331/
-- Portfolio: https://aaryanp35.github.io/my-portfolio/
+- Portfolio: https://aaryanp35.vercel.app
 
 Originally developed in a team repository by rhea4316's group. This is Aaryan's fork. Licensed for educational purposes as part of CSC207 at the University of Toronto.
