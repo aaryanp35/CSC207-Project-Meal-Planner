@@ -119,7 +119,7 @@ Full timeline: [Notion work tracker](https://maddening-year-2cf.notion.site/Meal
 **Aaryan Patel**, 3rd-year Economics (Data Analytics) student at the University of Toronto, with minors in Computer Science and Statistics.
 
 - Email: aaryanp35@gmail.com
-- LinkedIn: https://www.linkedin.com/in/aaryan-p-5a4223331/
+- LinkedIn: https://www.linkedin.com/in/aaryanp35
 - Portfolio: https://aaryanp35.vercel.app
 
 Originally developed in a team repository by rhea4316's group. This is Aaryan's fork. Licensed for educational purposes as part of CSC207 at the University of Toronto.
