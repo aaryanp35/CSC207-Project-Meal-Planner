@@ -1,382 +1,125 @@
 # Meal Planner
 
-A comprehensive meal planning application that helps users manage their daily and weekly meals with detailed nutrient tracking.
+A Java desktop meal planner that turns the ingredients you have into recipes, tracks nutrition, and schedules your week of meals. Built with Clean Architecture for CSC207 (Software Design) at the University of Toronto.
 
-## Team Members (Group 14, TUT0201)
+> **Project status:** early-stage. The architecture, entities, use case boundaries, and test scaffolding are in place, and a few classes are fully implemented (for example `Ingredient`, `NutritionInfo`, `NutritionGoals`, `Unit`, `MealType`, `DietaryRestriction`). Most interactors, views, and API clients are still stubs with TODO markers, so the app does not launch yet.
 
-* Aaryan Patel
-* Eden Chang
-* Grace Lin
-* Jerry Chai
-* Mona El Yass
-* Regina He
+## What and why
 
-## Project Overview
+Planning meals usually means juggling recipe sites, a calendar, and a calorie counter. This project brings those together: enter what is in your fridge, see matching recipes with nutrient info, save your own recipes, adjust serving sizes, and drop meals into a weekly schedule.
 
-This meal planning program helps users manage their daily and weekly meals. Users can enter ingredients they have to find matching recipes with nutrient information. Users can also browse recipes and see what ingredients are needed to make them. The program allows users to create and save their own recipes with cooking instructions. Users can plan their meals for breakfast, lunch, and dinner across a full week. The program also lets users adjust recipe serving sizes and view their scheduled meals. All recipes include detailed nutrient information to help users track their dietary intake.
+## Features
 
-## Work Timeline & Division of Work
+- Search recipes by the ingredients you already have
+- Browse recipes and see the ingredients and quantities they need
+- Create and save your own recipes, with nutrition calculated from the ingredients
+- Plan breakfast, lunch, and dinner across the week (add, edit, delete)
+- Scale a recipe to a different serving size
+- Log in by username to see your saved recipes and schedule
 
-https://maddening-year-2cf.notion.site/Meal-Planner-Project-Timeline-2a1e3eca9d8080409a2dcb7f40ee79e5
+## How it works
 
-## User Stories
+The code follows **Clean Architecture** in four layers, with dependencies pointing inward:
 
-### User Story 1
-As a user, I enter the ingredients and want to generate a recipe for my next meal, so that I know my nutrient intake for the meal.
+| Layer | Package | Contents |
+|-------|---------|----------|
+| Entities | `entity` | `Recipe`, `Ingredient`, `User`, `Schedule`, `MealPlan`, `NutritionInfo`, `NutritionGoals`, and the `Unit`, `MealType`, `DietaryRestriction` enums |
+| Use cases | `use_case` | One package per feature, each with an interactor plus input and output boundaries |
+| Interface adapters | `interface_adapter` | Controllers, presenters, and view models |
+| Frameworks and drivers | `view`, `data_access`, `config` | Swing views, Spoonacular and Edamam API clients, JSON file storage |
 
-### User Story 2
-As a user, I am planning to get groceries for the next week and I want to know what ingredients are needed to make the recipes I am planning.
+Each use case defines its own data access interface, so interactors never depend on the API or file code directly. Custom exceptions (`RecipeNotFoundException`, `InvalidServingSizeException`, and others) keep error handling explicit.
 
-### User Story 3
-As a user, I save my favorite meal in the program, inputting the ingredients needed and quantities and how to cook it, so that the app can provide the nutrient information for my stored meal.
+## Tech stack
 
-### User Story 4
-As a user, I want to be able to add, edit, and delete my meal plan schedule for the next three days in the program.
+- Java 11, Maven
+- Gson for JSON, OkHttp for HTTP calls
+- JUnit 5 and Mockito for tests
+- SLF4J and Logback for logging
+- [Spoonacular API](https://spoonacular.com/food-api) and [Edamam Meal Planner API](https://developer.edamam.com/edamam-docs-meal-planner-api) for recipe and nutrition data
 
-### User Story 5
-As a user, I want to be able to adjust serving sizes for recipes to make appropriate portions for myself and others.
+## Quick start
 
-### User Story 6
-As a user, I input my username and want to see what to eat from the schedule and recipes I saved from before.
+Prerequisites: Java 11 or higher, Maven 3.6+, and API keys from Spoonacular and Edamam.
 
-## Use Cases
-
-### Use Case 1: Enter Ingredients Receive Recipe
-
-**Main Flow:**
-1. User opens ingredient search page
-2. User enters ingredients into the system
-3. User clicks search button
-4. System finds recipes that match the ingredients
-5. System shows list of matching recipes
-6. User selects a recipe from the list
-7. System displays recipe details with nutrients
-
-**Alternative Flow:**
-* Not enough ingredients → Prompt to add more
-* No ingredients entered → Prompt user to enter at least one ingredient
-* No recipes found matching ingredients → Display message suggesting alternative ingredients
-* Duplicate ingredients entered → Remove duplicates or show warning
-* Invalid ingredient name (typo, special characters) → Suggest corrections or reject input
-* API call fails → Display error message and retry option
-
-### Use Case 2: Enter Recipe Receive Ingredients
-
-**Main Flow:**
-1. User opens recipe browse page
-2. System shows list of available recipes
-3. User selects a recipe
-4. System displays the ingredient list with quantities
-
-**Alternative Flow:**
-* Recipe list is empty → Prompt user to search for recipes first
-* Selected recipe has missing ingredient data → Display error message and suggest trying another recipe
-* API timeout or connection error → Display error and retry option
-* Recipe data corrupted → Handle gracefully with error message
-
-### Use Case 3: Storing a Recipe
-
-**Main Flow:**
-1. User clicks "Create New Recipe" button
-2. System shows input form
-3. User enters recipe name
-4. User adds ingredients with quantities
-5. User writes cooking instructions
-6. User clicks save button
-7. System checks all fields are filled
-8. System calculates nutrients from ingredients
-9. System saves recipe to database
-10. System shows confirmation message
-
-**Alternative Flow:**
-* No name entered → Prompt to add name
-* No ingredients entered → Prompt to complete incomplete fields
-* No cooking instructions entered → Prompt to add instructions
-* Recipe name already exists → Prompt user to choose a different name or overwrite existing recipe
-* Ingredient quantity is zero or negative → Prompt to enter valid quantity
-* Special characters in recipe name → Validate or sanitize input
-* Extremely long recipe name/instructions → Set character limits
-
-### Use Case 4: Manage Meal Plan
-
-**Main Flow:**
-1. User opens weekly meal plan
-2. System shows calendar with breakfast, lunch, dinner for each day
-3. User selects a meal slot (specific day and meal type)
-4. System asks user to choose: add, edit, or delete
-5. User makes selection
-6. System performs the chosen action
-7. System updates and shows the new meal plan
-
-**Alternative Flow:**
-* User cancels adding a meal recipe → User returns to meal plan menu
-* User tries to schedule past dates → Prevent or warn user
-* Multiple users trying to edit same meal plan simultaneously → Handle concurrency
-
-**Adding:**
-* User submits invalid meal recipe → Prompt user to enter a valid meal recipe
-* Meal slot already filled → Ask user to confirm overwrite
-
-**Editing:**
-* User tries to edit nonexistent meal recipe → Prompt user to enter a valid meal recipe
-* No changes made → Display message and keep original meal
-
-**Deleting:**
-* User tries to delete invalid meal recipe → Prompt user to enter a valid meal recipe
-* Meal slot already empty → Display message that no meal exists to delete
-
-### Use Case 5: Adjust Recipe Serving Size
-
-**Main Flow:**
-1. User views a recipe
-2. System shows recipe with default serving size
-3. User clicks serving size adjustment option
-4. System asks for desired number of servings
-5. User enters new serving size
-6. System checks if input is valid
-7. System calculates new ingredient amounts
-8. System calculates new nutrient values
-9. System displays updated recipe
-
-**Alternative Flow:**
-* Invalid input (zero or negative number) → Prompt user to enter a valid positive number
-* Extremely large serving size entered → Display confirmation message asking "Are you sure you want [X] servings?"
-* No serving size entered → Keep original serving size and display message
-* Non-numeric input (letters, symbols) → Reject and prompt for number
-* Decimal input (2.5 servings) → Decide if allowed or round to integer
-* Calculation results in fractional ingredients (0.3 eggs) → Round or display as fraction
-
-### Use Case 6: View Meal Schedule
-
-**Main Flow:**
-1. User opens meal schedule viewer
-2. System asks for username
-3. User enters username
-4. System checks username exists
-5. System loads user's meal schedule
-6. System displays weekly meal plan
-7. User clicks on a meal
-8. System shows full recipe details
-
-**Alternative Flow:**
-* Username not found → Prompt user to enter an existing username
-* No recipe saved in schedule → Prompt to create a schedule first
-* Selected recipe no longer exists → Display error message and offer to remove from schedule
-* Empty username entered → Prompt to enter username
-* Special characters in username → Validate input
-* User account locked or inactive → Display appropriate message
-
-## MVP Distribution
-
-| Lead Developer | Use Case | User Story |
-|---------------|----------|------------|
-| Jerry | Enter Ingredients Receive Recipe | User Story #1 |
-| Regina | Enter Recipe Receive Ingredients | User Story #2 |
-| Aaryan | Storing a Recipe | User Story #3 |
-| Grace | Manage Meal Plan | User Story #4 |
-| Eden | Adjust Recipe Serving Size | User Story #5 |
-| Mona | Login and browse user schedule | User Story #6 |
-| Everyone | GUI, API Integration, Database and Data Access, Entity Classes, Testing, Documentation |
-
-## Project Architecture
-
-This project follows **Clean Architecture** principles with 4 distinct layers:
-
-1. **Entities** (Yellow) - Core business objects (Recipe, Ingredient, User, etc.)
-2. **Use Cases** (Red) - Business logic (Interactors)
-3. **Interface Adapters** (Green) - Controllers, Presenters, ViewModels
-4. **Frameworks & Drivers** (Blue) - GUI, Database, APIs
-
-See [CODE_STRUCTURE.md](CODE_STRUCTURE.md) for detailed architecture documentation.
-
----
-
-## Proposed Entities
-
-### Class: Ingredient
-* `name`: String
-* `quantity`: double
-* `unit`: **Unit** (P0: Type-safe enum instead of String)
-* `nutrition`: **NutritionInfo** (encapsulated nutrition data)
-
-### Class: Recipe
-* `recipeID`: String
-* `recipeName`: String
-* `ingredients`: List<Ingredient>
-* `steps`: List<String>
-* `servingSize`: int
-* `nutrition`: **NutritionInfo** (calculated from ingredients)
-* `prepTime`: int (in minutes)
-* `cookTime`: int (in minutes)
-
-### Class: User
-* `userID`: String
-* `username`: String
-* `passwordHash`: String (hashed, not plain text!)
-* `savedRecipes`: List<Recipe>
-* `mealSchedule`: Schedule
-* `groceryList`: List<Ingredient>
-* `nutritionGoals`: **NutritionGoals** (P0: Encapsulated nutrition goals)
-
-### Class: Schedule
-* `scheduleID`: String
-* `userID`: String
-* `weeklyMeals`: Map<LocalDate, Map<MealType, Recipe>>
-  * Key: LocalDate (proper date type)
-  * Value: Map with **MealType** enum keys (P0) mapping to Recipe objects
-
-### Class: MealPlan
-* `date`: LocalDate (proper date type)
-* `breakfast`: Recipe
-* `lunch`: Recipe
-* `dinner`: Recipe
-* `dailyNutrition`: **NutritionInfo** (calculated from all meals)
-
-### Class: NutritionInfo (P0)
-* `calories`: int
-* `protein`: double
-* `carbs`: double
-* `fat`: double
-
-### Class: NutritionGoals (P0)
-* `dailyCalories`: int
-* `dailyProtein`: double
-* `dailyCarbs`: double
-* `dailyFat`: double
-* Business methods: `isWithinGoals()`, `calculateRemaining()`, `calculatePercentages()`
-
-### Enums (P0 - Type Safety)
-
-#### MealType
-* `BREAKFAST`, `LUNCH`, `DINNER`
-
-#### Unit
-* Weight: `GRAMS`, `KILOGRAMS`, `OUNCES`, `POUNDS`
-* Volume: `MILLILITERS`, `LITERS`, `CUPS`, `TABLESPOONS`, `TEASPOONS`
-* Count: `PIECES`, `ITEMS`, `WHOLE`
-* Special: `PINCH`, `DASH`, `TO_TASTE`
-
-#### DietaryRestriction
-* `VEGETARIAN`, `VEGAN`, `GLUTEN_FREE`, `DAIRY_FREE`, `NUT_FREE`, `EGG_FREE`
-* `KOSHER`, `HALAL`, `PALEO`, `KETO`, `LOW_SODIUM`, `LOW_SUGAR`
-
----
-
-## APIs
-
-This project uses the following APIs for recipe and meal planning data:
-
-* [Spoonacular API](https://www.postman.com/spoonacular-api/spoonacular-api/documentation/rqqne3j/spoonacular-api?entity=request-7431899-80665f4f-4b24-4cb2-b654-a6a14b72e973)
-* [Edamam Meal Planner API](https://developer.edamam.com/edamam-docs-meal-planner-api)
-
-Configuration managed through `ApiConfig` (P0) - see [GETTING_STARTED.md](GETTING_STARTED.md) for setup.
-
-
----
-
-## Getting Started
-
-### Prerequisites
-- Java 11 or higher
-- Maven 3.6+
-- API keys from Spoonacular and Edamam
-
-### Quick Start
 ```bash
-# Clone repository
-git clone <repository-url>
+git clone https://github.com/aaryanp35/CSC207-Project-Meal-Planner.git
 cd CSC207-Project-Meal-Planner
 
-# Configure API keys
-# Edit config/api-keys.properties with your keys
+# Add your API keys (this file is git-ignored)
+cp config/api_keys.properties.example config/api_keys.properties
+# then edit config/api_keys.properties
 
-# Build project
-mvn clean install
-
-# Run tests
-mvn test
-
-# Run application
+mvn clean install      # build and run tests
 mvn exec:java -Dexec.mainClass="com.mealplanner.app.Main"
 ```
 
-See [GETTING_STARTED.md](GETTING_STARTED.md) for detailed setup instructions.
+Heads up: `mvn compile` currently fails on `main` because the repository classes call getters that the `Recipe` stub does not have yet, and `Main` is still a TODO. Both are expected for this stage of the project.
 
----
+## Project structure
 
-## Development Guidelines
-
-### Using P0 Components
-
-**Exceptions**:
-```java
-// Throw specific exceptions
-throw new InvalidServingSizeException(servingSize);
-throw new RecipeNotFoundException(recipeId);
-
-// Catch and handle
-try {
-    // operation
-} catch (RecipeNotFoundException e) {
-    presenter.presentError("Recipe not found: " + e.getRecipeId());
-}
+```
+src/main/java/com/mealplanner/
+├── app/                # Main, AppBuilder, UseCaseFactory (dependency wiring)
+├── entity/             # Domain objects and enums
+├── use_case/           # Interactors and boundaries, one package per feature
+├── interface_adapter/  # controller, presenter, view_model
+├── data_access/        # api (Spoonacular, Edamam) and database (JSON files)
+├── repository/         # Repository interfaces and file-based implementations
+├── view/               # UI screens and components
+├── config/             # ApiConfig, AppConfig, ConfigLoader
+├── exception/          # Domain-specific exceptions
+└── util/               # Nutrition math, unit conversion, validation helpers
+src/test/java/...       # Mirrors main, one test class per component
+data/                   # Local JSON storage (git-ignored except its README)
+config/                 # API key template
 ```
 
-**Type-Safe Enums**:
-```java
-// Instead of strings
-MealType breakfast = MealType.BREAKFAST;
-Unit grams = Unit.GRAMS;
+## User stories
 
-// Parse user input
-MealType type = MealType.fromString(userInput);
-```
+1. Enter ingredients and get a recipe for my next meal, with its nutrient intake.
+2. See which ingredients I need to buy for the recipes I plan for next week.
+3. Save a favorite meal with ingredients, quantities, and steps, and get its nutrition.
+4. Add, edit, and delete my meal plan for the next few days.
+5. Adjust serving sizes to make the right portions.
+6. Enter my username and see my schedule and saved recipes.
 
-**Configuration**:
-```java
-String apiKey = ApiConfig.getSpoonacularApiKey();
-String dataPath = AppConfig.getRecipeDataPath();
-```
+## Team and work split
 
-### Using P1 Components
+**Group 14, TUT0201:** Aaryan Patel, Eden Chang, Grace Lin, Jerry Chai, Mona El Yass, Regina He.
 
-**Logging**:
-```java
-logger.info("Operation started");
-logger.debug("Debug data: {}", data);
-logger.error("Error occurred", exception);
-```
+| Lead developer | Use case |
+|----------------|----------|
+| Jerry | Enter ingredients, receive recipe |
+| Regina | Enter recipe, receive ingredients |
+| Aaryan | Storing a recipe |
+| Grace | Manage meal plan |
+| Eden | Adjust recipe serving size |
+| Mona | Login and browse user schedule |
+| Everyone | GUI, API integration, data access, entities, testing, documentation |
 
-**Utilities**:
-```java
-// Nutrition calculations
-NutritionInfo total = NutritionCalculator.calculateTotalNutrition(ingredients);
+Full timeline: [Notion work tracker](https://maddening-year-2cf.notion.site/Meal-Planner-Project-Timeline-2a1e3eca9d8080409a2dcb7f40ee79e5). Team guidance on AI tools is in [AI_USAGE_GUIDELINES.md](AI_USAGE_GUIDELINES.md).
 
-// Unit conversions
-double cups = IngredientConverter.convert(250, Unit.GRAMS, Unit.CUPS);
+## My role (Aaryan Patel)
 
-// String validation
-if (StringUtil.isNullOrEmpty(input)) {
-    throw new ValidationException("Input required");
-}
+- Lead developer for the **Store Recipe** use case (user story 3); assigned its interactor, boundaries, controller, presenter, view model, and view
+- Implemented the immutable `Ingredient` entity with input validation, `withQuantity`, `equals`, `hashCode`, and `toString`
+- Assigned `Unit`, the file-based recipe data access, and several domain exceptions
 
-// Number formatting
-String display = NumberUtil.formatOneDecimal(3.5); // "3.5"
-```
+<!-- TODO (Aaryan): add 2 or 3 outcome-focused bullets once more of Store Recipe is implemented (what you built, what you tested, what you learned). -->
 
-**Repositories**:
-```java
-// In interactor
-private final RecipeRepository recipeRepository;
+## What I learned
 
-public void execute(InputData input) {
-    Recipe recipe = createRecipe(input);
-    recipeRepository.save(recipe);
-}
-```
+- Applying Clean Architecture to a real feature: boundaries, dependency inversion, and keeping interactors free of UI and API details
+- Designing immutable, validated entities that fail fast on bad input
+- Planning a multi-person codebase by agreeing on interfaces and ownership before writing logic
 
----
+## Author
 
-## License
+**Aaryan Patel**, 3rd-year Economics (Data Analytics) student at the University of Toronto, with minors in Computer Science and Statistics.
 
-This project is for educational purposes as part of CSC207 at University of Toronto.
+- Email: aaryanp35@gmail.com
+- LinkedIn: https://www.linkedin.com/in/aaryanp35
+- Portfolio: https://aaryanp35.vercel.app
+
+Originally developed in a team repository by rhea4316's group. This is Aaryan's fork. Licensed for educational purposes as part of CSC207 at the University of Toronto.
